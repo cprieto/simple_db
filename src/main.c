@@ -2,8 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "buffer.h"
-#include "statement.h"
+#include "db.h"
 
 typedef enum {
     META_COMMAND_SUCCESS,
@@ -12,6 +11,7 @@ typedef enum {
 
 MetaCommandResult do_meta_command(InputBuffer* input_buffer) {
     if (strncmp(input_buffer->buffer, ".exit", input_buffer->buffer_length) == 0) {
+        close_input_buffer(input_buffer);
         exit(EXIT_SUCCESS);
     } else {
         return META_COMMAND_UNRECOGNIZED_COMMAND;
@@ -41,6 +41,9 @@ int main(int argc, char **argv) {
         switch (prepare_statement(input_buffer, &statement)) {
             case PREPARE_SUCCESS:
                 break;
+            case PREPARE_SYNTAX_ERROR:
+                printf("Syntax error. Could not parse statement.\n");
+                continue;
             case PREPARE_UNRECOGNIZED_STATEMENT:
                 printf("Unrecognized keyword at start of '%s'\n", input_buffer->buffer);
                 continue;
@@ -50,4 +53,3 @@ int main(int argc, char **argv) {
         printf("Executed.\n");
     }
 }
-
