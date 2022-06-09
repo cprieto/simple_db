@@ -1,2 +1,2 @@
-db_files = files('main.c', 'input.c')
+db_files = files('main.c', 'buffer.c', 'statement.c')
 
