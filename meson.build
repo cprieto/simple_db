@@ -1,4 +1,4 @@
-project('dbstuff', 'c', version: '1.0')
+project('dbstuff', 'c', version: '1.0', default_options: ['-std=c99'])
 
 subdir('src')
 

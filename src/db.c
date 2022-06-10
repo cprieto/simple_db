@@ -68,13 +68,12 @@ PrepareResult prepare_statement(InputBuffer* input_buffer, Statement* statement)
     return PREPARE_UNRECOGNIZED_STATEMENT;
 }
 
-void execute_statement(Statement* statement) {
+ExecuteResult execute_statement(Statement* statement, Table* table) {
     switch (statement->type) {
         case STATEMENT_INSERT:
-            break;
+            return execute_insert(statement, table);
         case STATEMENT_SELECT:
-            printf("I would do a select now\n");
-            break;
+            return execute_select(table);
     }
 }
 
@@ -116,4 +115,52 @@ void *row_slot(Table* table, u_int32_t row_num) {
     // so the row location would be at that PLUS the offset.
     // this is a block of memory so we can write the row there.
     return page + byte_offset;
+}
+
+Table *new_table() {
+    Table* table = malloc(sizeof(Table));
+    table->num_rows = 0;
+
+    for (u_int32_t i = 0; i < TABLE_MAX_PAGES; i++) {
+        // We set unused pages
+        table->pages[i] = NULL;
+    }
+
+    return table;
+}
+
+ExecuteResult execute_insert(Statement* statement, Table* table) {
+    // Oops! too many rows already!
+    if (table->num_rows >= TABLE_MAX_ROWS) {
+        return EXECUTE_TABLE_FULL;
+    }
+
+    // Get the piece of memory where I need to save the row
+    void* slot = row_slot(table, table->num_rows);
+
+    // Save the row in that piece of memory (slot)
+    serialize_row(&(statement->insert_row), slot);
+
+    // Ok, this is how many rows we have now
+    table->num_rows += 1;
+
+    return EXECUTE_SUCCESS;
+}
+
+ExecuteResult execute_select(Table* table) {
+    Row row;
+    for (u_int32_t i = 0; i < table->num_rows; i++) {
+        void* slot = row_slot(table, i);
+        deserialize_row(slot, &row);
+        printf("(%d, %s, %s)\n", row.id, row.username, row.email);
+    }
+
+    return EXECUTE_SUCCESS;
+}
+
+void free_table(Table* table) {
+    for (u_int32_t i = 0; i < table->num_rows; ++i) {
+        free(table->pages[i]);
+    }
+    free(table);
 }
