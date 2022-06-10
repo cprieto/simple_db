@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
 #include "db.h"
@@ -74,6 +75,8 @@ ExecuteResult execute_statement(Statement* statement, Table* table) {
             return execute_insert(statement, table);
         case STATEMENT_SELECT:
             return execute_select(table);
+        default:
+            return EXECUTE_ERROR;
     }
 }
 

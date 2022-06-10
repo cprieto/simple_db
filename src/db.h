@@ -66,6 +66,7 @@ typedef enum {
 typedef enum {
     EXECUTE_SUCCESS,
     EXECUTE_TABLE_FULL,
+    EXECUTE_ERROR,
 } ExecuteResult;
 
 // This is the book with all pages in the system
