@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <stdint.h>
+#include <sys/types.h>
 
 #ifndef BUILD_DB_H
 #define BUILD_DB_H
@@ -12,26 +14,26 @@
 #define TABLE_MAX_PAGES 100
 
 // Sizes required for allocation in memory
-extern const u_int32_t ID_SIZE;
-extern const u_int32_t USERNAME_SIZE;
-extern const u_int32_t EMAIL_SIZE;
+extern const uint32_t ID_SIZE;
+extern const uint32_t USERNAME_SIZE;
+extern const uint32_t EMAIL_SIZE;
 
 // Total size for a row block
-extern const u_int32_t ROW_SIZE;
+extern const uint32_t ROW_SIZE;
 
 // Location of each attribute in a block
-extern const u_int32_t ID_OFFSET;
-extern const u_int32_t USERNAME_OFFSET;
-extern const u_int32_t EMAIL_OFFSET;
+extern const uint32_t ID_OFFSET;
+extern const uint32_t USERNAME_OFFSET;
+extern const uint32_t EMAIL_OFFSET;
 
 // The page size is the same as the page size in many OSes (Linux, Windows)
-extern const u_int32_t PAGE_SIZE;
+extern const uint32_t PAGE_SIZE;
 
 // Each page can keep up to 14 rows
-extern const u_int32_t ROWS_PER_PAGE;
+extern const uint32_t ROWS_PER_PAGE;
 
 // We can keep up to 1400 rows in our memory db
-extern const u_int32_t TABLE_MAX_ROWS;
+extern const uint32_t TABLE_MAX_ROWS;
 
 typedef struct {
     char* buffer;
@@ -45,7 +47,7 @@ typedef enum {
 } StatementType;
 
 typedef struct {
-    u_int32_t id;
+    uint32_t id;
     char username[COLUMN_USERNAME_SIZE];
     char email[COLUMN_EMAIL_SIZE];
 } Row;
@@ -68,7 +70,7 @@ typedef enum {
 
 // This is the book with all pages in the system
 typedef struct {
-    u_int32_t num_rows;
+    uint32_t num_rows;
     void* pages[TABLE_MAX_PAGES];
 } Table;
 
@@ -114,7 +116,7 @@ ExecuteResult execute_statement(Statement*, Table*);
  * This is a block in a given page based in the row num.
  * @return a pointer where the row is located.
  */
-void* row_slot(Table*, u_int32_t);
+void* row_slot(Table*, uint32_t);
 
 /**
  * Creates a new empty page table

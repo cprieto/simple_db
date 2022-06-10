@@ -3,26 +3,26 @@
 #include "db.h"
 
 // Sizes required for allocation in memory
-const u_int32_t ID_SIZE = size_of_attribute(Row, id);
-const u_int32_t USERNAME_SIZE = size_of_attribute(Row, username);
-const u_int32_t EMAIL_SIZE = size_of_attribute(Row, email);
+const uint32_t ID_SIZE = size_of_attribute(Row, id);
+const uint32_t USERNAME_SIZE = size_of_attribute(Row, username);
+const uint32_t EMAIL_SIZE = size_of_attribute(Row, email);
 
 // Total size for a row block
-const u_int32_t ROW_SIZE = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
+const uint32_t ROW_SIZE = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
 
 // Location of each attribute in a block
-const u_int32_t ID_OFFSET = 0;
-const u_int32_t USERNAME_OFFSET = ID_OFFSET + ID_SIZE;
-const u_int32_t EMAIL_OFFSET = USERNAME_OFFSET + USERNAME_SIZE;
+const uint32_t ID_OFFSET = 0;
+const uint32_t USERNAME_OFFSET = ID_OFFSET + ID_SIZE;
+const uint32_t EMAIL_OFFSET = USERNAME_OFFSET + USERNAME_SIZE;
 
 // The page size is the same as the page size in many OSes (Linux, Windows)
-const u_int32_t PAGE_SIZE = 4096;
+const uint32_t PAGE_SIZE = 4096;
 
 // Each page can keep up to 14 rows
-const u_int32_t ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
+const uint32_t ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
 
 // We can keep up to 1400 rows in our memory db
-const u_int32_t TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES;
+const uint32_t TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES;
 
 InputBuffer *new_input_buffer() {
     InputBuffer *input_buffer = (InputBuffer *) malloc(sizeof(InputBuffer));
@@ -92,7 +92,7 @@ void deserialize_row(void* source, Row* row) {
 void *row_slot(Table* table, u_int32_t row_num) {
     // based in the row number, get the page where this will be stored
     // e.g. row 2 in page 0, row 34 in page 2
-    u_int32_t page_num = row_num / ROWS_PER_PAGE;
+    uint32_t page_num = row_num / ROWS_PER_PAGE;
 
     // a page is just a block of memory of size PAGE_SIZE
     void* page = table->pages[page_num];
@@ -105,11 +105,11 @@ void *row_slot(Table* table, u_int32_t row_num) {
 
     // Inside the page, what is the row order in that page?
     // For example, row 32 is 6
-    u_int32_t row_offset = row_num % ROWS_PER_PAGE;
+    uint32_t row_offset = row_num % ROWS_PER_PAGE;
 
     // Convert that offset into bytes
     // For example, row at position 6 has offset of 1746 bytes
-    u_int32_t byte_offset = row_offset * ROW_SIZE;
+    uint32_t byte_offset = row_offset * ROW_SIZE;
 
     // page has the start address of that page
     // so the row location would be at that PLUS the offset.
@@ -121,7 +121,7 @@ Table *new_table() {
     Table* table = malloc(sizeof(Table));
     table->num_rows = 0;
 
-    for (u_int32_t i = 0; i < TABLE_MAX_PAGES; i++) {
+    for (uint32_t i = 0; i < TABLE_MAX_PAGES; i++) {
         // We set unused pages
         table->pages[i] = NULL;
     }
@@ -149,7 +149,7 @@ ExecuteResult execute_insert(Statement* statement, Table* table) {
 
 ExecuteResult execute_select(Table* table) {
     Row row;
-    for (u_int32_t i = 0; i < table->num_rows; i++) {
+    for (uint32_t i = 0; i < table->num_rows; i++) {
         void* slot = row_slot(table, i);
         deserialize_row(slot, &row);
         printf("(%d, %s, %s)\n", row.id, row.username, row.email);
@@ -159,7 +159,7 @@ ExecuteResult execute_select(Table* table) {
 }
 
 void free_table(Table* table) {
-    for (u_int32_t i = 0; i < table->num_rows; ++i) {
+    for (uint32_t i = 0; i < table->num_rows; ++i) {
         free(table->pages[i]);
     }
     free(table);
