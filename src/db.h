@@ -1,6 +1,3 @@
-#ifndef BUILD_DB_H
-#define BUILD_DB_H
-
 #include <stdlib.h>
 
 #define COLUMN_USERNAME_SIZE 32
@@ -37,29 +34,29 @@ typedef enum {
 } PrepareResult;
 
 // Sizes required for allocation in memory
-const u_int32_t ID_SIZE = size_of_attribute(Row, id);
-const u_int32_t USERNAME_SIZE = size_of_attribute(Row, username);
-const u_int32_t EMAIL_SIZE = size_of_attribute(Row, email);
+extern const u_int32_t ID_SIZE;
+extern const u_int32_t USERNAME_SIZE;
+extern const u_int32_t EMAIL_SIZE;
 
 // Total size for a row block
-const u_int32_t ROW_SIZE = ID_SIZE + USERNAME_SIZE + EMAIL_SIZE;
+extern const u_int32_t ROW_SIZE;
 
 // Location of each attribute in a block
-const u_int32_t ID_OFFSET = 0;
-const u_int32_t USERNAME_OFFSET = ID_OFFSET + ID_SIZE;
-const u_int32_t EMAIL_OFFSET = USERNAME_OFFSET + USERNAME_SIZE;
+extern const u_int32_t ID_OFFSET;
+extern const u_int32_t USERNAME_OFFSET;
+extern const u_int32_t EMAIL_OFFSET;
 
 // The page size is the same as the page size in many OSes (Linux, Windows)
-const u_int32_t PAGE_SIZE = 4096;
+extern const u_int32_t PAGE_SIZE;
 
 // We will keep up to 400Kb of data
 #define TABLE_MAX_PAGES 100
 
 // Each page can keep up to 14 rows
-const u_int32_t ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
+extern const u_int32_t ROWS_PER_PAGE;
 
 // We can keep up to 1400 rows in our memory db
-const u_int32_t TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES;
+extern const u_int32_t TABLE_MAX_ROWS;
 
 // This is the book with all pages in the system
 typedef struct {
@@ -110,5 +107,3 @@ void execute_statement(Statement*);
  * @return a pointer where the row is located.
  */
 void* row_slot(Table*, u_int32_t);
-
-#endif //BUILD_DB_H
