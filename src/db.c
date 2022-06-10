@@ -55,3 +55,43 @@ void execute_statement(Statement* statement) {
             break;
     }
 }
+
+void serialize_row(Row* row, void* destination) {
+    memcpy(destination + ID_OFFSET, &(row->id), ID_SIZE);
+    memcpy(destination + USERNAME_OFFSET, &(row->username), USERNAME_SIZE);
+    memcpy(destination + EMAIL_OFFSET, &(row->email), EMAIL_SIZE);
+}
+
+void deserialize_row(void* source, Row* row) {
+    memcpy(&(row->id), source + ID_OFFSET, ID_SIZE);
+    memcpy(&(row->username), source + USERNAME_OFFSET, USERNAME_SIZE);
+    memcpy(&(row->email), source + EMAIL_OFFSET, EMAIL_SIZE);
+}
+
+void *row_slot(Table* table, u_int32_t row_num) {
+    // based in the row number, get the page where this will be stored
+    // e.g. row 2 in page 0, row 34 in page 2
+    u_int32_t page_num = row_num / ROWS_PER_PAGE;
+
+    // a page is just a block of memory of size PAGE_SIZE
+    void* page = table->pages[page_num];
+
+    if (page == NULL) {
+        // Allocate memory if page is not existent!
+        page = malloc(PAGE_SIZE);
+        table->pages[page_num] = page;
+    }
+
+    // Inside the page, what is the row order in that page?
+    // For example, row 32 is 6
+    u_int32_t row_offset = row_num % ROWS_PER_PAGE;
+
+    // Convert that offset into bytes
+    // For example, row at position 6 has offset of 1746 bytes
+    u_int32_t byte_offset = row_offset * ROW_SIZE;
+
+    // page has the start address of that page
+    // so the row location would be at that PLUS the offset.
+    // this is a block of memory so we can write the row there.
+    return page + byte_offset;
+}
