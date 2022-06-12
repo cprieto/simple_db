@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
                 printf("Executed.\n");
                 break;
             case EXECUTE_TABLE_FULL:
-                printf("Oops! we reached the max capacity for our database!\n");
+                printf("Error: Table full.\n");
                 break;
             default:
                 printf("Unrecognized statement.\n");

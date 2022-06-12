@@ -6,11 +6,6 @@ from subprocess import run
 from typing import NamedTuple
 
 
-class CmdReturn(NamedTuple):
-    output: list[str]
-    retval: int
-
-
 class BaseDbTests(ABC, unittest.TestCase):
     DBS = "dbs"
 
@@ -18,23 +13,28 @@ class BaseDbTests(ABC, unittest.TestCase):
         cmds = ''.join((x + '\n' for x in args))
         resp = run((DbTests.DBS,), capture_output=True, input=cmds.encode())
 
-        return CmdReturn(resp.stdout.decode().split('\n'), resp.returncode)
+        return resp.stdout.decode().split('\n')
 
 
 class DbTests(BaseDbTests):
     def test_starts_and_exit(self):
-        output, retval = self.run_script('.exit')
+        output = self.run_script('.exit')
         
         self.assertEqual(['db > '], output)
-        self.assertEqual(retval, 0)
 
     def test_inserts_and_retrieves_a_row(self):
         cmds = ['insert 1 user1 person1@example.com', 'select', '.exit']
-        output, retval = self.run_script(*cmds)
+        output = self.run_script(*cmds)
 
         self.assertEqual(output, ['db > Executed.', 'db > (1, user1, person1@example.com)', 'Executed.', 'db > '])
-        self.assertEqual(retval, 0)
-        
+
+    def test_prints_error_message_when_table_is_full(self):
+        cmds = [f'insert {x} user{x} user{x}@sample.com' for x in range(0, 1401)]
+        cmds += ['.exit']
+
+        output = self.run_script(*cmds)
+        self.assertEqual(output[-2], 'db > Error: Table full.')
+
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
