@@ -76,16 +76,6 @@ typedef struct {
 } Table;
 
 /**
- * Serialize a row in a memory block
- */
-void serialize_row(Row*, void*);
-
-/**
- * Deserialize a row from a memory block
- */
-void deserialize_row(void*, Row*);
-
-/**
  * Creates a new empty InputBuffer
  * @return new empty InputBuffer
  */
@@ -124,18 +114,6 @@ void* row_slot(Table*, uint32_t);
  * @return a new page table with null pages
  */
 Table* new_table();
-
-/**
- * Insert a row into a page table
- * @return What happened with the insert
- */
-ExecuteResult execute_insert(Statement*, Table*);
-
-/**
- * Selects and display all the rows in the database
- * @return What happened with the select
- */
-ExecuteResult execute_select(Table*);
 
 /**
  * Destroys an existing page table
