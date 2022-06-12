@@ -16,13 +16,11 @@ class BaseDbTests(ABC, unittest.TestCase):
 
 
 class DbTests(BaseDbTests):
-    @unittest.skip("testing my bug")
     def test_starts_and_exit(self):
         output = self.run_script('.exit')
         
         self.assertEqual(['db > '], output)
 
-    @unittest.skip("testing my bug")
     def test_inserts_and_retrieves_a_row(self):
         cmds = ['insert 1 user1 person1@example.com', 'select', '.exit']
         output = self.run_script(*cmds)
