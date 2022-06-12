@@ -2,8 +2,7 @@ from unittest import TestCase
 import sys
 import unittest
 from abc import ABC
-from subprocess import run
-from typing import NamedTuple
+from subprocess import check_output
 
 
 class BaseDbTests(ABC, unittest.TestCase):
@@ -11,17 +10,19 @@ class BaseDbTests(ABC, unittest.TestCase):
 
     def run_script(self, *args) -> list[str]:
         cmds = ''.join((x + '\n' for x in args))
-        resp = run((DbTests.DBS,), capture_output=True, input=cmds.encode())
+        resp = check_output((DbTests.DBS,), input=cmds.encode())
 
-        return resp.stdout.decode().split('\n')
+        return resp.decode().split('\n')
 
 
 class DbTests(BaseDbTests):
+    @unittest.skip("testing my bug")
     def test_starts_and_exit(self):
         output = self.run_script('.exit')
         
         self.assertEqual(['db > '], output)
 
+    @unittest.skip("testing my bug")
     def test_inserts_and_retrieves_a_row(self):
         cmds = ['insert 1 user1 person1@example.com', 'select', '.exit']
         output = self.run_script(*cmds)
