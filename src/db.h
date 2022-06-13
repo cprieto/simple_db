@@ -2,7 +2,7 @@
 #define BUILD_DB_H
 
 #include "buffer.h"
-#include "table.h"
+#include "storage.h"
 
 typedef enum {
     STATEMENT_INSERT,

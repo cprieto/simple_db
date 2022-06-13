@@ -1,5 +1,5 @@
-#ifndef BUILD_TABLE_H
-#define BUILD_TABLE_H
+#ifndef BUILD_STORAGE_H
+#define BUILD_STORAGE_H
 
 #include <stdint.h>
 
@@ -39,10 +39,16 @@ typedef struct {
     char email[COLUMN_EMAIL_SIZE + 1];
 } Row;
 
+typedef struct {
+    int file_descriptor;
+    uint32_t file_length;
+    void* pages[TABLE_MAX_PAGES];
+} Pager;
+
 // This is the book with all pages in the system
 typedef struct {
     uint32_t num_rows;
-    void* pages[TABLE_MAX_PAGES];
+    Pager* pager;
 } Table;
 
 /*
@@ -53,14 +59,16 @@ typedef struct {
 void* row_slot(Table*, uint32_t);
 
 /**
- * Creates a new empty page table
- * @return a new page table with null pages
+ * Opens a database file
+ * If the file does not exist, it will create it
+ * @return A table with potential cache entries
  */
-Table* new_table();
+Table* db_open(const char*);
 
 /**
- * Destroys an existing page table
+ * Closes an existing database file
+ * it will flush data from the table to the database file
  */
-void free_table(Table*);
+void db_close(Table*);
 
-#endif //BUILD_TABLE_H
+#endif //BUILD_STORAGE_H
