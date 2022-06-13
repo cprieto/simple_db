@@ -51,14 +51,36 @@ void close_input_buffer(InputBuffer *input_buffer) {
     free(input_buffer);
 }
 
+PrepareResult prepare_insert(InputBuffer* buffer, Statement* statement) {
+    strtok(buffer->buffer, " "); // First is the keyword
+    char* id_string = strtok(NULL, " ");
+    char* username = strtok(NULL, " ");
+    char* email = strtok(NULL, " ");
+
+    if (!id_string || !username || !email) {
+        return PREPARE_SYNTAX_ERROR;
+    }
+
+    statement->type = STATEMENT_INSERT;
+
+    int id = atoi(id_string);
+    if (id < 0) return PREPARE_NEGATIVE_ID;
+
+    if (strlen(username) > COLUMN_USERNAME_SIZE || strlen(email) > COLUMN_EMAIL_SIZE) {
+        return PREPARE_STRING_TOO_LONG;
+    }
+
+    statement->insert_row.id = id;
+    strcpy(statement->insert_row.username, username);
+    strcpy(statement->insert_row.email, email);
+
+    return PREPARE_SUCCESS;
+}
+
+
 PrepareResult prepare_statement(InputBuffer* input_buffer, Statement* statement) {
     if (strncmp(input_buffer->buffer, "insert", 6) == 0) {
-        int read = sscanf(input_buffer->buffer, "insert %d %s %s", &(statement->insert_row.id), statement->insert_row.username, statement->insert_row.email);
-        if (read < 3) {
-            return PREPARE_SYNTAX_ERROR;
-        }
-        statement->type = STATEMENT_INSERT;
-        return PREPARE_SUCCESS;
+        return prepare_insert(input_buffer, statement);
     }
 
     if (strncmp(input_buffer->buffer, "select", 6) == 0) {
