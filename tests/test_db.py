@@ -34,6 +34,13 @@ class DbTests(BaseDbTests):
         output = self.run_script(*cmds)
         self.assertEqual(output[-2], 'db > Error: Table full.')
 
+    def test_it_can_insert_fields_with_max_chars(self):
+        username = 'a'*31
+        cmds = [f'insert 1 {username} foo@bar.com', 'select', '.exit']
+
+        output = self.run_script(*cmds)
+        self.assertEqual(output, ['db > Executed.', f'(1, {username} foo@bar.com)', 'db > '])
+
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
