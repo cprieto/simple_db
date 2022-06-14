@@ -30,40 +30,33 @@ const uint32_t TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES;
 // Pager related methods (for memory cache of pages from disk)
 void* get_page(Pager* pager, uint32_t page_num) {
     if (page_num > TABLE_MAX_PAGES) {
-        printf("Tried to fetch page number out of bounds %d > %d\n", page_num, TABLE_MAX_PAGES);
+        printf("Tried to fetch page number out of bounds. %d > %d\n", page_num, TABLE_MAX_PAGES);
         exit(EXIT_FAILURE);
     }
 
-    if (!pager->pages[page_num]) {
-        // Cache miss! time to load the page from disk
-        uint32_t num_pages = pager->file_length / PAGE_SIZE; // num of pages in the file
+    if (pager->pages[page_num] == NULL) {
+        // Cache miss. Allocate memory and load from file.
+        void* page = malloc(PAGE_SIZE);
+        uint32_t num_pages = pager->file_length / PAGE_SIZE;
 
-        // We could have a partial page at the end of the file
+        // We might save a partial page at the end of the file
         if (pager->file_length % PAGE_SIZE) {
             num_pages += 1;
         }
 
-        void* page = malloc(sizeof(PAGE_SIZE));
-
-        // This is a page already in disk that we don't have in cache!
         if (page_num <= num_pages) {
-            // page position in file
-            uint32_t file_pos = page_num * PAGE_SIZE;
-            // place read pointer to the place where the page should be in the file
-            lseek(pager->file_descriptor, file_pos, SEEK_SET);
-
+            lseek(pager->file_descriptor, page_num * PAGE_SIZE, SEEK_SET);
             ssize_t bytes_read = read(pager->file_descriptor, page, PAGE_SIZE);
             if (bytes_read == -1) {
-                printf("Error reading file %d\n", errno);
+                printf("Error reading file: %d\n", errno);
                 exit(EXIT_FAILURE);
             }
         }
 
-        // Place the page
         pager->pages[page_num] = page;
-
-        return pager->pages[page_num];
     }
+
+    return pager->pages[page_num];
 }
 
 Pager* page_open(const char* filename) {
