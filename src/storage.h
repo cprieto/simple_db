@@ -2,6 +2,7 @@
 #define BUILD_STORAGE_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #define size_of_attribute(Struct, Attribute) sizeof(((Struct*)0)->Attribute)
 
@@ -51,12 +52,41 @@ typedef struct {
     Pager* pager;
 } Table;
 
-/*
+// Represents a position or cursor in a table
+typedef struct {
+    Table* table;
+    // current row number
+    uint32_t row_num;
+
+    bool end_of_table;
+} Cursor;
+
+/**
  * Block of memory to write the row
  * This is a block in a given page based in the row num.
  * @return a pointer where the row is located.
  */
-void* row_slot(Table*, uint32_t);
+void *cursor_value(Cursor *cursor);
+
+/**
+ * Moves a cursor to the next element
+ * @param cursor
+ */
+void cursor_next(Cursor *cursor);
+
+/**
+ * Returns a cursor at the beginning of the table
+ * @param table
+ * @return cursor
+ */
+Cursor* table_start(Table* table);
+
+/**
+ * Returns a cursor at the end of the table
+ * @param table
+ * @return cursor
+ */
+Cursor* table_end(Table* table);
 
 /**
  * Opens a database file
@@ -70,5 +100,15 @@ Table* db_open(const char*);
  * it will flush data from the table to the database file
  */
 void db_close(Table*);
+
+/**
+ * Serializes a row in the correct memory format
+ */
+void serialize_row(Row* row, void* destination);
+
+/**
+ * Deserialize a memory block into a row
+ */
+void deserialize_row(void* source, Row* row);
 
 #endif //BUILD_STORAGE_H

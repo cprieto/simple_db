@@ -2,18 +2,6 @@
 #include <string.h>
 #include "db.h"
 
-void serialize_row(Row* row, void* destination) {
-    memcpy(destination + ID_OFFSET, &(row->id), ID_SIZE);
-    strncpy(destination + USERNAME_OFFSET, row->username, USERNAME_SIZE);
-    strncpy(destination + EMAIL_OFFSET, row->email, EMAIL_SIZE);
-}
-
-void deserialize_row(void* source, Row* row) {
-    memcpy(&(row->id), source + ID_OFFSET, ID_SIZE);
-    memcpy(&(row->username), source + USERNAME_OFFSET, USERNAME_SIZE);
-    memcpy(&(row->email), source + EMAIL_OFFSET, EMAIL_SIZE);
-}
-
 // Insert operation
 PrepareResult prepare_insert(InputBuffer* buffer, Statement* statement) {
     strtok(buffer->buffer, " "); // First is the keyword
@@ -47,11 +35,11 @@ ExecuteResult execute_insert(Statement* statement, Table* table) {
         return EXECUTE_TABLE_FULL;
     }
 
-    // Get the piece of memory where I need to save the row
-    void* slot = row_slot(table, table->num_rows);
+    // Get a cursor at the end of the table
+    Cursor* cursor = table_end(table);
 
     // Save the row in that piece of memory (slot)
-    serialize_row(&(statement->insert_row), slot);
+    serialize_row(&statement->insert_row, cursor_value(cursor));
 
     // Ok, this is how many rows we have now
     table->num_rows += 1;
@@ -61,12 +49,16 @@ ExecuteResult execute_insert(Statement* statement, Table* table) {
 
 // Select operation
 ExecuteResult execute_select(Table* table) {
+    Cursor* cursor = table_start(table);
     Row row;
-    for (uint32_t i = 0; i < table->num_rows; i++) {
-        void* slot = row_slot(table, i);
-        deserialize_row(slot, &row);
+
+    while (!cursor->end_of_table) {
+        deserialize_row(cursor_value(cursor), &row);
         printf("(%d, %s, %s)\n", row.id, row.username, row.email);
+        cursor_next(cursor);
     }
+
+    free(cursor);
 
     return EXECUTE_SUCCESS;
 }

@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <string.h>
 #include "storage.h"
 
 // Sizes required for allocation in memory
@@ -26,6 +27,43 @@ const uint32_t ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
 
 // We can keep up to 1400 rows in our memory db
 const uint32_t TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES;
+
+Cursor* table_end(Table* table) {
+    Cursor* cursor = malloc(sizeof(Cursor));
+    cursor->table = table;
+    cursor->row_num = table->num_rows;
+    cursor->end_of_table = true;
+
+    return cursor;
+}
+
+Cursor *table_start(Table *table) {
+    Cursor* cursor = malloc(sizeof(Cursor));
+    cursor->table = table;
+    cursor->row_num = 0;
+    cursor->end_of_table = false;
+
+    return cursor;
+}
+
+void cursor_next(Cursor *cursor) {
+    cursor->row_num += 1;
+    if (cursor->row_num >= cursor->table->num_rows) {
+        cursor->end_of_table = true;
+    }
+}
+
+void serialize_row(Row* row, void* destination) {
+    memcpy(destination + ID_OFFSET, &(row->id), ID_SIZE);
+    strncpy(destination + USERNAME_OFFSET, row->username, USERNAME_SIZE);
+    strncpy(destination + EMAIL_OFFSET, row->email, EMAIL_SIZE);
+}
+
+void deserialize_row(void* source, Row* row) {
+    memcpy(&(row->id), source + ID_OFFSET, ID_SIZE);
+    memcpy(&(row->username), source + USERNAME_OFFSET, USERNAME_SIZE);
+    memcpy(&(row->email), source + EMAIL_OFFSET, EMAIL_SIZE);
+}
 
 // Pager related methods (for memory cache of pages from disk)
 void* get_page(Pager* pager, uint32_t page_num) {
@@ -102,7 +140,9 @@ void page_flush(Pager* pager, uint32_t page_num, uint32_t page_size) {
     }
 }
 
-void *row_slot(Table* table, uint32_t row_num) {
+void *cursor_value(Cursor *cursor) {
+    uint32_t row_num = cursor->row_num;
+
     // based in the row number, get the page where this will be stored
     // e.g. row 2 in page 0, row 34 in page 2
     uint32_t page_num = row_num / ROWS_PER_PAGE;
@@ -116,7 +156,7 @@ void *row_slot(Table* table, uint32_t row_num) {
     uint32_t byte_offset = row_offset * ROW_SIZE;
 
     // a page is just a block of memory of size PAGE_SIZE
-    void* page = get_page(table->pager, page_num);
+    void* page = get_page(cursor->table->pager, page_num);
 
     // page has the start address of that page
     // so the row location would be at that PLUS the offset.
@@ -174,3 +214,4 @@ void db_close(Table* table) {
     free(pager);
     free(table);
 }
+
